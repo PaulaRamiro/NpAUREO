@@ -1,4 +1,4 @@
-Hola hola hola
+####CODES TO DOWNLOAD ALL FILES USED IN THE ANALYSIS####
 
-# Ponemos aquí los scripts de como hemos bajado los datos
-
+Assembly .fasta files were downloaded from NCBI (https://www.ncbi.nlm.nih.gov/assembly/) applying "Complete Genome" filter.
+Using "Find related data" on the right side, and SRA as database, 
