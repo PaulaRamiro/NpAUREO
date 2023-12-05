@@ -2,6 +2,7 @@
 
 # To download the metadata table from NCBI:
   wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
+  wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 
 Assembly .fasta files were downloaded from NCBI (https://www.ncbi.nlm.nih.gov/assembly/) applying "Complete Genome" filter.
 Using "Find related data" on the right side, and SRA as database, 
