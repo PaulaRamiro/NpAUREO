@@ -8,3 +8,55 @@ Assembly .fasta files were downloaded from NCBI (https://www.ncbi.nlm.nih.gov/as
 Using "Find related data" on the right side, and SRA as database, 
 
 
+# To download the metadata table from NCBI:
+
+```
+  wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt  
+  wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+
+```
+Samples were selected by filtering the desired genus and  "Complete_Genome". SRR information were downloaded with esearch with a custom code:
+
+```
+Download.SRR <- Staph_plasmids %>%
+  mutate(ejecutar ="esearch -db sra -query '") %>%
+  mutate(genome =  NCBI.Biosample.Accession) %>%
+  mutate(format = paste0("' | efetch -format runinfo >", NCBI.Biosample.Accession, ".numbers")) %>%
+  select(ejecutar, genome, format)
+
+esearch -db sra -query NCBI_Biosample_Accession | efetch -format runinfo > NCBI_Biosample_Accession.numbers
+
+```
+
+Reads were downloaded using fasterq-dump from [sra-tools](https://github.com/ncbi/sra-tools) with the following options:
+
+
+```
+fasterq-dump --split-3 SRRXXXXX
+```
+
+Assembly .fasta files were downloaded from [NCBI](https://www.ncbi.nlm.nih.gov/assembly/) applying "Complete_Genome" filter.
+
+
+Once
+
+```
+path_to_reads="/storage/IMG/Staphylococcus/SRR_from_Biosample/reads/Completos/"
+path_to_assemblies="/storage/IMG/Staphylococcus/NCBI.Assemblies/"
+
+#Dónde se guardará el archivo ejecutable
+output="/storage/IMG/Staphylococcus/Coverm_staph.sh"
+
+coverm <- SRR %>% select(Run, BioSample) %>% filter(BioSample != "") %>% filter(BioSample != "assembly") %>%
+  mutate(run="coverm contig ") %>%
+  mutate(output=paste0("--output-file ", BioSample)) %>%
+  mutate(method= "-m trimmed_mean ") %>%
+  mutate(reference= paste0("-r ",path_to_assemblies, BioSample, ".fasta")) %>%
+  mutate(read1 = paste0("-1 ",path_to_reads, Run, "_1.fastq.gz")) %>%
+  mutate(read2 = paste0("-2 ",path_to_reads, Run, "_2.fastq.gz")) %>%
+  select(run, read1, read2, output, method, reference)
+
+
+#Y escribimos la tabla  separada por tabuladores ("\t"), sin comillas (quote=F) y sin row ni col.names
+write.table(coverm, file=output, sep="\t", quote = F, row.names = F, col.names = F)
+```
