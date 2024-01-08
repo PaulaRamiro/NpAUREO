@@ -211,8 +211,19 @@ cat temp_* > combined_file.txt
 rm temp_*
 ```
 
+We also run mobtyper (once again parallelising) on our .fasta files using the code:
 
-
+```
+#bash #
+mkdir Resmobty
+ls *.fasta *.fna | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Resmobty/{}"'
+```
+And parse the results using the code:
+```
+#bash #
+for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
+cat mod* > allmobtyperstaph.txt
+```
 
 
 
