@@ -167,7 +167,7 @@ We run this code in python, in parallel. Again, this step may take between hours
 Tune the code to match your computing capacity.
 ```
 #Python3 #
-
+#Note wherever you run this code is where coverm results will appear. 
 import multiprocessing
 import subprocess
 
@@ -190,6 +190,27 @@ if __name__ == "__main__":
 ```
 We assume some of the mappings may fail, we intend not to lose more than 20% of the files at this step, but this may differ depending on the genre you are executing.
 You will see empty files for the failed mappings, but be careful, because mappings in proccess also appear as empty files, and are only written when coverm is finished. 
+
+Once finished. We parse the results with this custom code:
+```
+#bash #
+#Note you have to be in the folder which contains the coverm results to run this code
+header_printed=false
+
+for file in *; do
+    if [ -f "$file" ]; then
+        if [ "$header_printed" = false ]; then
+            awk 'BEGIN {print "Filename\tContent"} NR>1 {print FILENAME "\t" $0}' "$file" > "temp_$file"
+            header_printed=true
+        else
+            awk 'NR>1 {print FILENAME "\t" $0}' "$file" > "temp_$file"
+        fi
+    fi
+done
+cat temp_* > combined_file.txt
+rm temp_*
+```
+
 
 
 
