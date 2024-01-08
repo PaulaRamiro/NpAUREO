@@ -1,0 +1,470 @@
+# First, download the metadata table from NCBI:
+
+```
+#bash #
+  wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
+  wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+
+```
+Samples were selected by filtering the desired genus and  "Complete Genome".
+For example:
+
+```
+#bash #
+grep Staphylococcus assembly_summary_genbank.txt | grep "Complete Genome" > AllInfoStaph.txt
+```
+Now we create, with a custom R code, esearch orders to download .fasta assemblies from the table previously generated
+
+```
+#R #
+Download.assemblies <- AllInfoStaph %>%
+  mutate(ejecutar ="esearch -db assembly -query ") %>%
+  mutate(genome = biosample ) %>%
+  mutate(format = paste0("efetch -format fasta >", biosample, ".fasta")) %>%
+  mutate(db= "| elink -target nucleotide -name \ assembly_nuccore_refseq |") %>% 
+  select(ejecutar, genome, db, format)
+
+```
+We write this table and execute it as a shell command (sh FILENAME) #Note this step CANNOT be parallelized, due to NCBI server limit of petitions per second. If parallelized, will fail.
+
+We then manually delete all empty or very small files (containing exclusively phage sequencing or just malformed files due to esearch fails), and those containing only 1 contig (no plasmids)
+
+Then, two custom codes are run, to display all lengths of all contigs of each .fasta file, and filter out those that don't contain plasmids
+
+```
+#bash #
+mkdir LengthAssembly
+for file in *.fasta *.fna; do
+    awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' "$file" > "LengthAssembly/$(basename -- "$file" .fna)"
+done
+```
+```
+#Python3 #
+import os
+
+current_directory = os.getcwd()
+
+# Create a dictionary to store modified lines
+modified_lines = {}
+
+# Modify files
+for filename in os.listdir(current_directory):
+    if not filename.startswith('MOD_'):
+        output_filename = f"MOD_{filename}"
+        file_name = os.path.splitext(filename)[0]
+        
+        with open(filename, 'r') as file:
+            with open(output_filename, 'w') as output_file:
+                output_file.write("Biosample,contig,sample,length\n")
+                for line in file:
+                    if line.startswith(">"):
+                        parts = line.strip().split(' ', 1)
+                        if len(parts) == 2:
+                            sample_info = f"{file_name},{parts[0]},{parts[1].rstrip()}"
+                            number_line = next(file).strip()
+                            output_file.write(f"{sample_info},{number_line}\n")
+                            modified_lines[sample_info] = number_line
+
+# Merge modified lines into 'alllengths.txt'
+with open('alllengths.txt', 'w') as merged_file:
+    merged_file.write("Biosample,contig,sample,length\n")
+    for sample_info, number_line in modified_lines.items():
+        merged_file.write(f"{sample_info},{number_line}\n")
+```
+This table, alllengths.txt, will be imported to R and used to filter.
+A couple of column name changes are made due to incompatibilities in tables
+
+Then, we create with the NCBI and our .fasta merged tables, esearch petitions to download .numbers files containing run information for selected assemblies
+
+
+```
+#R #
+NCBI <- read.delim("/XXXX/AllInfoStaph.txt", sep = "\t")
+FASTAS <- read.table("/XXXX/alllengths.txt", sep = ",",header = TRUE)
+NCBI <- NCBI  %>% mutate(AccessionNumber=X.assembly_accession)#%>% mutate(BioSample=biosample)
+FASTAS<-FASTAS %>% filter(grepl("complete", sample)) %>% select(BioSample)
+FASTAS<-FASTAS %>% separate(Biosample, into = c("BioSample", "cosa"), sep="_ASM")
+FASTAS<-FASTAS %>% mutate(Complete = "Yes") %>% unique()
+FASTAS<-FASTAS %>% mutate(AccessionNumber = BioSample)
+FASTASmNCBI<-FASTAS %>% left_join(NCBI) %>% filter(bioproject!="na") %>% mutate(BioSample=biosample)
+
+Download.SRR <- FASTASmNCBI %>% select(biosample,AccessionNumber) %>% unique() %>% 
+  mutate(ejecutar ="esearch -db sra -query ") %>%
+  mutate(genome =  biosample) %>%
+  mutate(format = paste0(" | efetch -format runinfo >", AccessionNumber, ".numbers")) %>%
+  select(ejecutar, genome, format)
+ write.table(Download.SRR, file="/XXXX/downloadnumbersstaph.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+```
+And execute this code in bash to download said files (sh downloadnumbersstaph.sh) (NOTE this code can neither be parallelized, due to same issue before with NCBI servers)
+
+As done before, files with 0 bytes are discarded manually
+
+All .numbers files are merged to be used as a table in R
+
+```
+#bash #
+cat *.numbers > allnumbersstaph.txt
+```
+With the .numbers files, and all other information, we select pontentially valid Run numbers to download the .fastq files. 
+Note we filter a lot because of disk space issues. Genres can have a size of over 1 or 2TB each.
+```
+#R #
+SRR <- read.delim("/XXXX/allnumbersstaph.txt", sep = ",") %>% filter(Run != "Run") %>% filter(LibraryStrategy!="RNA-Seq") %>% filter(Platform=="ILLUMINA") %>% filter(LibraryLayout=="PAIRED")
+finalruns <-  SRR %>% left_join(FASTASmNCBI) %>% unique()
+finalruns %>% group_by(AccessionNumber) %>% summarise(N=n()) %>% filter(N!=1) %>% view()
+finalruns<-finalruns %>% select(Run,AccessionNumber) %>% unique()
+finalruns<-finalruns %>% select(Run)
+write.table(finalruns, file = "/XXX/DefNumbers.txt",row.names = FALSE,col.names = FALSE, quote = FALSE)
+```
+This yields a list of SRRs with pontential to be used.
+Now we execute a chunk of code that downloads all of the .fastq files available for selected runs using fasterq-dump from samtools package.
+Using fastq-dump is also valid, but much slower. 
+Note this code paralellizes in various procceses and can be tuned to match your machine capabilities. 
+
+```
+#Python3 #
+import multiprocessing
+import subprocess
+
+with open('DefNumbers.txt', 'r') as file:    numbers = [(line.strip()) for line in file if line.strip()]
+
+def execute_fasterq_dump(number):
+    command = f"fasterq-dump --split-3 {number}"
+    try:
+        subprocess.run(command, shell=True, check=True)
+        print(f"Command executed for number: {number}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command for number {number}: {e}")
+
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(processes=8)     # This step sets the number of cores to be used to parallelize, in this case, 8. Tune this to fit your machine.
+    pool.map(execute_fasterq_dump, numbers)
+    pool.close()
+    pool.join()
+
+```
+
+
+
+
+
+
+SRR information were downloaded with esearch with a custom code:
+
+```
+# R #
+Download.SRR <- Staph_plasmids %>%
+  mutate(ejecutar ="esearch -db sra -query '") %>%
+  mutate(genome =  NCBI.Biosample.Accession) %>%
+  mutate(format = paste0("' | efetch -format runinfo >", NCBI.Biosample.Accession, ".numbers")) %>%
+  select(ejecutar, genome, format)
+
+esearch -db sra -query NCBI_Biosample_Accession | efetch -format runinfo > NCBI_Biosample_Accession.numbers
+
+```
+Once we have the SRR information, we filter paired, genomic reads from illumina:
+
+```
+# R #
+
+####### Staphylococcus #######
+
+alllengthsSTAPH <- read.csv("~/Downloads/alllengthsSTAPH.txt") %>% separate(Biosample, into=c("AccesionNumber", "cosa"), sep="_ASM")
+
+todosnumbersstaph <- read.csv("~/Downloads/todosnumbersstaph.txt") %>% filter(Run != "Run") %>% mutate(Biosample = BioSample) %>% filter(LibraryLayout == "PAIRED") %>% filter(LibrarySource== "GENOMIC") %>% filter(Platform == "ILLUMINA")
+
+Staph_NCBI <- read.delim("~/Documents/Tesis/Staph_NCBI.txt", header=FALSE) %>% mutate(AccesionNumber = V1) %>% mutate(Biosample=V3)
+
+alllengthsSTAPH %>% left_join(Staph_NCBI)
+alllengthsSTREPTO %>% left_join(todosnumbersstrepto)
+
+ncontigs_staph <- alllengthsSTAPH %>% group_by(AccesionNumber) %>% summarise(N=n()) %>% filter(N>1)
+
+Total_Staph <- Staph_NCBI %>%
+  left_join(todosnumbersstaph) %>% filter(!is.na(Run)) %>%
+  left_join(ncontigs_staph) %>%
+  select(Biosample, AccesionNumber, Run, N)
+
+write.table(Total_Staph, file="Staphylococcus.NCBI.filtered.reads.txt",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+Assemblies_a_descargar <- Total_Staph %>% filter(is.na(N)) %>% select(Biosample, AccesionNumber) %>% unique()
+Assemblies_que_tenemos <- Total_Staph %>% filter(!is.na(N))
+
+write.table(Assemblies_a_descargar, file="Assemblies.que.faltan.staph.txt",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+####### Streptococcus #######
+todosnumbersstrepto <- read.csv("~/Downloads/allnumbersstreptobuenos.txt")%>% filter(Run != "Run") %>% mutate(Biosample = BioSample) %>% filter(Run != "Run") %>% mutate(Biosample = BioSample) %>% filter(LibraryLayout == "PAIRED") %>% filter(LibrarySource== "GENOMIC") %>% filter(Platform == "ILLUMINA")
+
+Strepto_NCBI <- read.delim("~/Documents/Tesis/Strepto_NCBI.txt", header=FALSE) %>% mutate(AccessionNumber = V1) %>% mutate(Biosample=V3)
+alllengthsSTREPTO <- read.csv("~/Downloads/alllengthsSTREPTO.txt")
+
+ncontigs_strepto <- alllengthsSTREPTO %>% group_by(AccessionNumber) %>% summarise(N=n()) %>% filter(N>1)
+
+Total_strepto <- Strepto_NCBI %>%
+  left_join(todosnumbersstrepto) %>% filter(!is.na(Run)) %>%
+  left_join(ncontigs_strepto) %>%
+  select(Biosample, AccessionNumber, Run, N)
+
+Unique_Strepto <- Total_strepto %>% group_by(Biosample) %>% summarise(N=n())
+
+write.table(Total_strepto, file="Streptococcus.NCBI.filtered.reads.txt",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+Assemblies_a_descargar <- Total_strepto %>% filter(is.na(N)) %>% select(Biosample, AccessionNumber) %>% unique()
+
+#Assemblies que nos faltan
+write.table(Assemblies_a_descargar, file="Streptococcus.NCBI.filtered.assemblies.txt",  row.names = FALSE,
+            col.names = T, quote = FALSE)
+
+####### Enterococcus #######
+
+# Nos hemos bajado los assemblies del NCBI con los filtros: Latest, complete_genomes y Ok y hemos buscado los reads asociados con el sra database de ncbi (sra run tool)
+
+Enterococcus_NCBItable_Complete <- read.delim("/storage/IMG/Enterococcus_NCBItable_Complete.txt") %>% filter(assembly_level == "Complete Genome")
+
+Download.enterococcus.numbers <- Enterococcus_NCBItable_Complete %>%
+  filter(biosample != "na") %>%
+  mutate(ejecutar ="esearch -db sra -query ") %>%
+  mutate(genome =  biosample) %>%
+  mutate(format = paste0(" | efetch -format runinfo > ", biosample, ".numbers")) %>%
+  select(ejecutar, genome, format)
+
+Download.reads <- SRA.enterococcus %>%
+  mutate(ejecutar ="fasterq-dump --split-3") %>%
+  mutate(SRR =  Run) %>%
+  select(ejecutar, SRR)
+
+write.table(Download.enterococcus.numbers, file="/storage/IMG/Enterococcus/Nuevo_tablaNCBI/download_numbers_NCBI_Enterococcus.sh",  row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+## Download reads and assemblies
+
+# Una vez tenemos los códigos de los runs, descargamos los reads y sus assemblies asociados
+
+SRR <- read.delim("/storage/IMG/Enterococcus/Nuevo_tablaNCBI/SRA.bien/Listanumbers_enterococcus.txt", sep = ",") %>% filter(Run != "Run")
+
+Download.assemblies <- SRR %>% left_join(Enterococcus_NCBItable_Complete %>% mutate(BioSample = biosample)) %>%
+mutate(ejecutar ="esearch -db assembly -query ") %>%
+  mutate(genome =  X.assembly_accession) %>%
+  mutate(format = paste0(" efetch -format fasta > ", X.assembly_accession, ".fasta")) %>%
+  mutate(db= '| elink -target nucleotide -name \ assembly_nuccore_refseq |') %>%
+  select(ejecutar, genome, db, format)
+  
+write.table(Download.assemblies, file="/storage/IMG/Enterococcus/Nuevo_tablaNCBI/Enterococcus.IMG.assemblies.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+
+
+####### Vibrio #######
+
+Vibrio_NCBI <- read.delim("~/Documents/Tesis/Vibrio_NCBI.txt", header=FALSE) %>% mutate(AccessionNumber = V1) %>% mutate(Biosample = V3)
+
+Download.SRR <- Vibrio_NCBI %>%
+  mutate(ejecutar ="esearch -db sra -query ") %>%
+  mutate(genome =  Biosample) %>%
+  mutate(format = paste0(" | efetch -format runinfo > ",Biosample, ".numbers")) %>%
+  select(ejecutar, genome, format) %>%
+  filter(genome != "na")
+
+write.table(Download.SRR, file="Vibrio.NCBI.reads.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+ Vibrio_RunNumbers <- read.csv("~/Bioinformatica/Vibrio_numbers_NCBI/Vibrio_RunNumbers.txt") %>% filter(Run != "Run") %>% mutate(Biosample = BioSample) %>% filter(LibraryLayout == "PAIRED") %>% filter(LibrarySource== "GENOMIC") %>% filter(Platform == "ILLUMINA")
+
+ Vibrio_RunNumbers <- Vibrio_RunNumbers %>% left_join(Vibrio_NCBI %>% select(Biosample, AccessionNumber))
+
+Download.assemblies <- Vibrio_RunNumbers %>%
+mutate(ejecutar ="esearch -db assembly -query ") %>%
+  mutate(genome =  AccessionNumber) %>%
+  mutate(format = paste0(" efetch -format fasta > ", AccessionNumber, ".fasta")) %>%
+  mutate(db= '| elink -target nucleotide -name \ assembly_nuccore_refseq |') %>%
+  select(ejecutar, genome, db, format) %>%
+  unique()
+
+
+write.table(Download.assemblies, file="Vibrio.NCBI.assemblies.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+
+all_assemblies_vibrio <- read.csv("~/Bioinformatica/genome_assemblies_vibrio_fasta/ncbi-genomes-2023-12-06/all_assemblies_vibrio.txt") %>% mutate(AccessionNumber = AccessionAssembly)
+
+filtered_assemblies <- all_assemblies_vibrio %>% left_join(Vibrio_RunNumbers) %>%
+  filter(!is.na(Run)) %>%
+  mutate(move = paste0("mv ",AccessionAssembly,"_",cosa)) %>%
+  mutate(path = " /Users/paularamiromartinez/Bioinformatica/genome_assemblies_vibrio_fasta/assemblies_filtrados") %>%
+  select(move, path) %>%
+  view()
+
+write.table(filtered_assemblies, file="/Users/paularamiromartinez/Bioinformatica/genome_assemblies_vibrio_fasta/assemblies_filtrados/mv.Vibrio.NCBI.assemblies.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+ncontigsVibrio <- read.csv("~/Bioinformatica/genome_assemblies_vibrio_fasta/assemblies_filtrados/ncontigsVibrio.txt", header=FALSE) %>% mutate(AccessionNumber = V1)
+
+Download.reads.Vibrio <- ncontigsVibrio %>% left_join(Vibrio_RunNumbers) %>% filter(V3 >2) %>%
+  mutate(ejecutar ="fasterq-dump --split-3") %>%
+  mutate(SRR =  Run) %>%
+  select(ejecutar, SRR)
+
+write.table(Download.reads.Vibrio, file="Vibrio.NCBI.reads.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+Vibrio_RunNumbers <- read.csv("/storage/IMG/Vibrio/Vibrio_RunNumbers.txt")
+Vibrio_NCBI <- read.delim("/storage/IMG/Vibrio/Vibrio_NCBI.txt", header=FALSE) %>% mutate(BioSample = V3) %>% mutate(AssemblyName = V1)
+Assemblies_vibrio <- read.csv("/storage/IMG/Vibrio/assemblies_Vibrio/my_list_fna_vibrio.txt")
+Vibrio.NCBI.reads <- read.table("/storage/IMG/Vibrio/reads/Vibrio.NCBI.reads.sh", quote="\"", comment.char="") %>% mutate(Run = V3) %>% select(Run) %>% mutate(Tenemos = "Si")
+
+CoverM <- Vibrio_RunNumbers %>% select(Run, BioSample) %>% left_join(Vibrio.NCBI.reads) %>% filter(Tenemos == "Si")
+
+CoverM <- CoverM %>% left_join(Vibrio_NCBI %>% select(AssemblyName, BioSample)) %>% left_join(Assemblies_vibrio) %>% filter(Run != "Run")
+
+# Está en un entorno de mamba -> mamba activate coverm
+# coverm contigs -1 SRR1049477_1.fastq -2 SRR1049477_2.fastq --output-file prueba_trimmed_mean -m trimmed_mean -r PRJNA223837.fasta
+
+path_to_reads="/storage/IMG/Vibrio/reads/"
+path_to_assemblies="/storage/IMG/Vibrio/Assemblies/"
+
+#Dónde se guardará el archivo ejecutable
+output="/storage/IMG/Vibrio/coverm/Coverm_Vibrio.sh"
+
+coverm <- CoverM %>% filter(!is.na(cosa)) %>%
+  mutate(run="coverm contig ") %>%
+  mutate(output=paste0("--output-file ", AssemblyName)) %>%
+  mutate(method= "-m trimmed_mean ") %>%
+  mutate(reference= paste0("-r ",path_to_assemblies, AssemblyName,"_",cosa)) %>%
+  mutate(read1 = paste0("-1 ",path_to_reads, Run, "_1.fastq")) %>%
+  mutate(read2 = paste0("-2 ",path_to_reads, Run, "_2.fastq")) %>%
+  select(run, read1, read2, output, method, reference)
+
+write.table(coverm, file="/storage/IMG/Vibrio/coverm/Coverm_Vibrio.sh",  row.names = FALSE,
+            col.names = FALSE, quote = FALSE)
+
+```
+
+
+Reads were downloaded using fasterq-dump from [sra-tools](https://github.com/ncbi/sra-tools) with the following options:
+
+
+```
+#bash #
+fasterq-dump --split-3 SRRXXXXX
+```
+
+Assembly .fasta files were downloaded from [NCBI](https://www.ncbi.nlm.nih.gov/assembly/) applying "Complete_Genome" filter.
+
+
+Once we have the complete assemblies and the associated reads, we run [coverm](https://github.com/wwood/CoverM) to extract the coverage of each contig, by using the following code:
+
+```
+#R #
+
+path_to_reads="/storage/IMG/Staphylococcus/SRR_from_Biosample/reads/Completos/"
+path_to_assemblies="/storage/IMG/Staphylococcus/NCBI.Assemblies/"
+
+output="/storage/IMG/Staphylococcus/Coverm_staph.sh"
+
+coverm <- SRR %>% select(Run, BioSample) %>% filter(BioSample != "") %>% filter(BioSample != "assembly") %>%
+  mutate(run="coverm contig ") %>%
+  mutate(output=paste0("--output-file ", BioSample)) %>%
+  mutate(method= "-m trimmed_mean ") %>%
+  mutate(reference= paste0("-r ",path_to_assemblies, BioSample, ".fasta")) %>%
+  mutate(read1 = paste0("-1 ",path_to_reads, Run, "_1.fastq.gz")) %>%
+  mutate(read2 = paste0("-2 ",path_to_reads, Run, "_2.fastq.gz")) %>%
+  select(run, read1, read2, output, method, reference)
+```
+```
+#bash #
+coverm contig -1 XXXXX_1.fastq.gz	-2 XXXXX_2.fastq.gz	--output-file Biosample_Name	-m trimmed_mean 	-r Biosample_Name.fasta
+
+```
+CoverM results were parsed with the following custom script:
+```
+# bash #
+header_printed=false
+
+for file in *; do
+    if [ -f "$file" ]; then
+        if [ "$header_printed" = false ]; then
+            awk 'BEGIN {print "Filename\tContent"} NR>1 {print FILENAME "\t" $0}' "$file" > "temp_$file"
+            header_printed=true
+        else
+            awk 'NR>1 {print FILENAME "\t" $0}' "$file" > "temp_$file"
+        fi
+    fi
+done
+
+cat temp_* > combined_file.txt
+rm temp_*
+
+
+```
+For each .fasta file, length of each contig was calculated using the following scripts:
+First
+```
+#bash #
+
+for file in *.fasta *.fna; do
+    awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' "$file" > "LengthAssembly/$(basename -- "$file" .fna)"
+done
+
+```
+Then
+```
+#Python3 #
+import os
+
+current_directory = os.getcwd()
+
+modified_lines = {}
+
+for filename in os.listdir(current_directory):
+    if not filename.startswith('MOD_'):
+        output_filename = f"MOD_{filename}"
+        file_name = os.path.splitext(filename)[0]
+        
+        with open(filename, 'r') as file:
+            with open(output_filename, 'w') as output_file:
+                output_file.write("Biosample,contig,sample,length\n")
+                for line in file:
+                    if line.startswith(">"):
+                        parts = line.strip().split(' ', 1)
+                        if len(parts) == 2:
+                            sample_info = f"{file_name},{parts[0]},{parts[1].rstrip()}"
+                            number_line = next(file).strip()
+                            output_file.write(f"{sample_info},{number_line}\n")
+                            modified_lines[sample_info] = number_line
+
+with open('alllengths.txt', 'w') as merged_file:
+    merged_file.write("Biosample,contig,sample,length\n")
+    for sample_info, number_line in modified_lines.items():
+        merged_file.write(f"{sample_info},{number_line}\n")
+
+
+```
+We also run Mobtyper for all fasta files, using the following script
+```
+# bash #
+mkdir Resmobty
+ls *.fasta *.fna | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Resmobty/{}"'
+
+```
+Results from mobtyper were parsed using the following custom script
+```
+# bash #
+for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
+cat *mod > parsedmobtyper.txt
+rm mod*
+
+```
+
+
+
+Data of Enterobacterales were extracted from two papers:
+
+  Shaw LP, Chau KK, Kavanagh J, AbuOun M, Stubberfield E, Gweon HS, Barker L, Rodger G, Bowes MJ, Hubbard ATM, et al. 2021. Niche and local geography shape the pangenome of wastewater- and livestock-associated Enterobacteriaceae. Sci. Adv. 7:eabe3868.
+
+  Nagano DS, Taniguchi I, Ono T, Nakamura K, Gotoh Y, Hayashi T. 2023. Systematic analysis of plasmids of the Serratia marcescens complex using 142 closed genomes. Microb. Genomics [Internet] 9. Available from: https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.001135
+
+
+
