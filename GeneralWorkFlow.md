@@ -11,7 +11,7 @@ First, we downloaded the metadata table from NCBI:
 @@ text in purple (and bold)@@
 ```
 ```diff
-+ bash 
++ # bash #
 
 # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
 
