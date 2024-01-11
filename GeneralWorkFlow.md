@@ -93,7 +93,7 @@ esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 
 With the Biosample.numbers files, we use the run IDs to download the reads with fasterq-dump from samtools package:
 
-```
+```diff
 + # Python3 #
 
 import multiprocessing
