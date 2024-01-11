@@ -1,4 +1,4 @@
-Here you can find our general workflow, and the data from the coverm analyses used in our paper. Additional files necessary for analysis are provided in data folder.
+Here you can find our general workflow and the data used for the analyses in the paper. Additional files necessary for analysis are provided in data folder.
 
 Bioinformatic analyses performed for the research paper:
 
