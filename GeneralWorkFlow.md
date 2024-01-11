@@ -15,20 +15,20 @@ First, we downloaded the metadata table from NCBI:
 
 # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
 
-+ wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt 
-+ wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt 
+wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 
 ```
 Samples were selected by filtering the desired genus and "Complete Genome". For example:
 
-```
+```diff
 @@ bash @@ 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
 Then, we used esearch to download the genome assemblies with the following arguments:
 
-```
+```diff
 @@ bash @@ 
 esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 
@@ -36,7 +36,7 @@ esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 And we analyze the number of contigs of each assembly file to filter out those that don't contain plasmids
 
 
-```
+```diff
 
 @@ bash @@ 
 mkdir LengthAssembly
