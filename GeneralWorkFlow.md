@@ -11,6 +11,7 @@ First, we downloaded the metadata table from NCBI:
 @@ text in purple (and bold)@@
 ```
 ```diff
+
 + # bash #
 
 # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
@@ -22,7 +23,8 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 Samples were selected by filtering the desired genus and "Complete Genome". For example:
 
 ```diff
-+ # bash # 
++ # bash #
+
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
@@ -31,6 +33,7 @@ Then, we used esearch to download the genome assemblies with the following argum
 ```diff
 
 + # bash #
+
 esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 
 ```
@@ -40,12 +43,14 @@ And we analyze the number of contigs of each assembly file to filter out those t
 ```diff
 
 + # bash #
+
 mkdir LengthAssembly
 for file in *.fasta *.fna; do
     awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' "$file" > "LengthAssembly/$(basename -- "$file" .fna)"
 done
 
 + # Python3 #
+
 import os
 current_directory = os.getcwd()
 
@@ -80,14 +85,17 @@ with open('alllengths.txt', 'w') as merged_file:
 Then, we downloaded the files containing run information for selected assemblies of NCBI also with esearch: 
 
 ```diff
-+ # bash # 
+
++ # bash #
+
 esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
 With the Biosample.numbers files, we use the run IDs to download the reads with fasterq-dump from samtools package:
 
 ```
-+ # Python3 # 
++ # Python3 #
+
 import multiprocessing
 import subprocess
 
