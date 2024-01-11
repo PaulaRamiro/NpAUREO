@@ -2,14 +2,6 @@
 
 First, we downloaded the metadata table from NCBI:
 
-
-```diff
-- text in red
-+ text in green
-! text in orange
-# text in gray
-@@ text in purple (and bold)@@
-```
 ```diff
 
 + # bash #
