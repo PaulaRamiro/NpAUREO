@@ -2,8 +2,16 @@
 
 First, we downloaded the metadata table from NCBI:
 
+
+```diff
+- text in red
++ text in green
+! text in orange
+# text in gray
+@@ text in purple (and bold)@@
 ```
-![#4f1e73ff] #bash#
+```
+ #bash#
   wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
   wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 
