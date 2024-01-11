@@ -1,9 +1,9 @@
-#Extract data
+**Extract data**
 
 First, we downloaded the metadata table from NCBI:
 
 ```
-#bash
+#bash#
   wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt # Both databases were used indistinctly, selecting for each genre, the one that contained most samples of our interest
   wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 
@@ -72,7 +72,7 @@ Then, we downloaded the files containing run information for selected assemblies
 esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
-With the .numbers files, we use the run IDs to download the reads with fasterq-dump from samtools package:
+With the Biosample.numbers files, we use the run IDs to download the reads with fasterq-dump from samtools package:
 
 ```
 #Python3 #
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     pool.join()
 
 ```
-With reads and complete assemblies files, we run CoverM to extract the coverage information:
+Once the reads and assembly files have been downloaded, we ran **CoverM** to extract the coverage information:
 
 ```
 #R #
