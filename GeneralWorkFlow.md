@@ -82,7 +82,7 @@ with open('alllengths.txt', 'w') as merged_file:
         merged_file.write(f"{sample_info},{number_line}\n")
 ```
 
-Then, we downloaded the files containing run information for selected assemblies of NCBI also with esearch: 
+Then, we downloaded the files containing run information for selected assemblies of NCBI, also with esearch: 
 
 ```diff
 
@@ -116,26 +116,18 @@ if __name__ == "__main__":
     pool.join()
 
 ```
-Once the reads and assembly files have been downloaded, we ran **CoverM** to extract the coverage information:
+Once the reads and assembly files have been downloaded, we ran **CoverM** to extract the coverage information, by using the following flags:
+
+```diff
++ # bash #
+
+coverm contig --output-file Biosample -m trimmed_mean -r Biosample.fasta -1 reads_1.fastq -2 reads_2.fastq
 
 ```
-#R #
-path_to_reads="PATHTOREADS"
-path_to_assemblies="PATHTOASSEMBLIES"
-coverm <- finalruns %>% select(Run, AccessionNumber) %>% 
-  mutate(run="coverm contig ") %>% 
-  mutate(output=paste0("--output-file ", AccessionNumber)) %>% 
-  mutate(method= "-m trimmed_mean ") %>% 
-  mutate(reference= paste0("-r ",path_to_assemblies, AccessionNumber, ".fasta")) %>% 
-  mutate(read1 = paste0("-1 ",path_to_reads, Run, "_1.fastq")) %>% 
-  mutate(read2 = paste0("-2 ",path_to_reads, Run, "_2.fastq")) %>% 
-  select(run, read1, read2, output, method, reference) %>% unique()
-write.table(coverm, file="/XXXX/StaphCoverM.txt", sep="\t", quote = F, row.names = F, col.names = F)
-```
-
 We run this code in python, in parallel. Again, this step may take between hours and a couple days based on your computing capacity.
 Tune the code to match your computing capacity.
-```
+
+```diff
 #Python3 #
 #Note wherever you run this code is where coverm results will appear. 
 import multiprocessing
