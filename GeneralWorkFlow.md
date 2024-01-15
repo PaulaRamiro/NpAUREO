@@ -108,6 +108,10 @@ if __name__ == "__main__":
     pool.join()
 
 ```
+
+## **Extract coverage information** 
+
+
 Once the reads and assembly files have been downloaded, we ran **CoverM** to extract the coverage information, by using the following flags:
 
 ```diff
