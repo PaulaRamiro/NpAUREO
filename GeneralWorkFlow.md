@@ -29,7 +29,7 @@ Then, we used esearch to download the genome assemblies with the following argum
 esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 
 ```
-And we analyze the number of contigs of each assembly file to filter out those that don't contain plasmids
+And we analyze the number of contigs of each assembly file to filter out those that don't contain plasmids:
 
 
 ```diff
@@ -116,39 +116,12 @@ Once the reads and assembly files have been downloaded, we ran **CoverM** to ext
 coverm contig --output-file Biosample -m trimmed_mean -r Biosample.fasta -1 reads_1.fastq -2 reads_2.fastq
 
 ```
-We run this code in python, in parallel. Again, this step may take between hours and a couple days based on your computing capacity.
-Tune the code to match your computing capacity.
-
-```diff
-#Python3 #
-#Note wherever you run this code is where coverm results will appear. 
-import multiprocessing
-import subprocess
-
-with open('StaphCoverM.txt', 'r') as file:
-    commands = [line.strip() for line in file if line.strip()]
-
-# Define the function that will execute each command
-def execute_command(command):
-    try:
-        subprocess.run(command, shell=True, check=True)
-        print(f"Command executed: {command}")
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {command}, Error: {e}")
-
-if __name__ == "__main__":
-    pool = multiprocessing.Pool(processes=8) # Tune here how many cores you want to use
-    pool.map(execute_command, commands)
-    pool.close()
-    pool.join()
-```
-We assume some of the mappings may fail, we intend not to lose more than 20% of the files at this step, but this may differ depending on the genre you are executing.
-You will see empty files for the failed mappings, but be careful, because mappings in proccess also appear as empty files, and are only written when coverm is finished. 
 
 Once finished. We parse the results with this custom code:
-```
-#bash #
-#Note you have to be in the folder which contains the coverm results to run this code
+
+```diff
++ # bash #
+
 header_printed=false
 
 for file in *; do
@@ -165,18 +138,23 @@ cat temp_* > combined_file.txt
 rm temp_*
 ```
 
-We also run mobtyper (once again parallelising) on our .fasta files using the code:
+We also run mobtyper on our .fasta files by paralellizing with the following command:
+
+```diff
++ # bash #
+
+mkdir Results_mobtyper
+ls *.fasta *.fna | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
 
 ```
-#bash #
-mkdir Resmobty
-ls *.fasta *.fna | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Resmobty/{}"'
-```
 And parse the results using the code:
-```
-#bash #
+
+```diff
+
++ # bash #
 for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
-cat mod* > allmobtyperstaph.txt
+cat mod* > all_results.txt
+
 ```
 
 
