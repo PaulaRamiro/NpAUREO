@@ -1,4 +1,4 @@
-## **Extract data** 
+## **Download data** 
 
 First, we downloaded the metadata table from NCBI:
 
@@ -142,6 +142,24 @@ cat temp_* > combined_file.txt
 rm temp_*
 ```
 
+
+## **Extract plasmid information** 
+
+First, we divide plasmids in clusters with mge-cluster (), using the following arguments:
+
+```diff
++ # bash #
+
+
+```
+Once we classified the plasmids into clusters, we extracted the PTU information of each cluster with COPLA (), using the following arguments: 
+
+```diff
++ # bash #
+
+
+```
+
 We also run mobtyper on our .fasta files by paralellizing with the following command:
 
 ```diff
@@ -160,7 +178,6 @@ for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "f
 cat mod* > all_results.txt
 
 ```
-
 
 
 
