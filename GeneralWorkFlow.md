@@ -176,6 +176,12 @@ cat mod* > all_results.txt
 
 ```
 
+## **Extract antibiotic resistance information** 
+
+We run abricate (https://github.com/tseemann/abricate) on the assemblies to analyze the resistance gene content of each plasmid, by using  the following command:
+
+```diff
++ # bash #
 
 
-
+```
