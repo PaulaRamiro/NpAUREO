@@ -1,3 +1,6 @@
+
+<img width="682" alt="Captura de pantalla 2024-03-10 a las 15 34 32" src="https://github.com/PaulaRamiro/NpAUREO/assets/152322543/0f71a2df-2fed-4d96-aa3b-a6ffb1b3b477">
+
 ## **Download data** 
 
 First, we downloaded the metadata table from NCBI:
