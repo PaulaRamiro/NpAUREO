@@ -22,7 +22,7 @@ Samples were selected by filtering the desired genus and "Complete Genome". For 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
-Then, we used esearch to download the genome assemblies with the following arguments:
+Then, we used Entrez Direct (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through esearch, with the following arguments:
 
 ```diff
 
@@ -147,14 +147,7 @@ rm temp_*
 
 ## **Extract plasmid information** 
 
-First, we divide plasmids in clusters with mge-cluster (), using the following arguments:
-
-```diff
-+ # bash #
-
-
-```
-Once we classified the plasmids into clusters, we extracted the PTU information of each cluster with COPLA (), using the following arguments: 
+First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with COPLA (https://github.com/santirdnd/COPLA), using the following arguments: 
 
 ```diff
 + # bash #
@@ -162,7 +155,7 @@ Once we classified the plasmids into clusters, we extracted the PTU information 
 
 ```
 
-We also run mobtyper on our .fasta files by paralellizing with the following command:
+We also run mob_suite (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
 
 ```diff
 + # bash #
