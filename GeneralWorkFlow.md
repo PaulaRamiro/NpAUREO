@@ -1,5 +1,7 @@
 
-![Pipeline_NumeroPaureoç](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/bade9109-9faf-4dcf-9eed-749f2b16f5c0)
+![Pipeline_NumeroPaureoç](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/fffb467c-d94d-4fec-a5a8-6f1793265c35)
+
+
 ## **Download data** 
 
 First, we downloaded the metadata table from NCBI:
