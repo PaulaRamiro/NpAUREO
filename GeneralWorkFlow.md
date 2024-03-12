@@ -1,5 +1,5 @@
 
-![g4](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/4dd83b82-9cb6-47b7-b7ba-13ae37e70226)
+![Flowchart](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/e74a9909-d6ef-4e2a-93fb-77ade576219a)
 
 
 ## **Download data** 
