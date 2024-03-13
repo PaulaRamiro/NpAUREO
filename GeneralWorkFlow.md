@@ -152,8 +152,11 @@ rm temp_*
 First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with COPLA (https://github.com/santirdnd/COPLA), using the following arguments: 
 
 ```diff
-+ # bash #
-
++ # python #
+python3 bin/copla.py "$fasta_file" \
+        databases/Copla_RS84/RS84f_sHSBM.pickle \
+        databases/Copla_RS84/CoplaDB.fofn \
+        "$fasta_file"_output
 
 ```
 
@@ -182,6 +185,6 @@ We run abricate (https://github.com/tseemann/abricate) on the assemblies to anal
 
 ```diff
 + # bash #
-
+abricate *.f* > AbricateResults.tab
 
 ```
