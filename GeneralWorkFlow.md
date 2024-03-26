@@ -87,7 +87,7 @@ Then, we downloaded the files containing run information for selected assemblies
 esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
-With the Biosample.numbers files, we use the run IDs to download the reads with fasterq-dump from samtools package:
+With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from samtools package:
 
 ```diff
 + # Python3 #
