@@ -116,7 +116,7 @@ if __name__ == "__main__":
 ## **Extract coverage information** 
 
 
-Once the reads and assembly files have been downloaded, we ran **CoverM** to extract the coverage information, by using the following flags:
+Once the reads and assembly files have been downloaded, we ran **CoverM** (https://github.com/wwood/CoverM) to extract the coverage information, by using the following flags:
 
 ```diff
 + # bash #
