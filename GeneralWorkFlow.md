@@ -1,5 +1,5 @@
 
-![Pipeline_NumeroPaureo](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/007dd8e5-04f9-4735-9717-758dd4d2613d)
+![Pipeline_NumeroPaureo](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/9e499fa8-4bfa-41fa-bc3a-80bb0601debb)
 
 
 ## **Download data** 
