@@ -24,7 +24,7 @@ Samples were selected by filtering the desired genus and "Complete Genome". For 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
-Then, we used Entrez Direct (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through esearch, with the following arguments:
+Then, we used **Entrez Direct** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through esearch, with the following arguments:
 
 ```diff
 
@@ -33,6 +33,7 @@ Then, we used Entrez Direct (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to d
 esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 
 ```
+
 And we analyze the number of contigs of each assembly file to filter out those that don't contain plasmids:
 
 
@@ -87,7 +88,7 @@ Then, we downloaded the files containing run information for selected assemblies
 esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
-With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from SRA-toolkit package (https://hpc.nih.gov/apps/sratoolkit.html):
+With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (https://hpc.nih.gov/apps/sratoolkit.html):
 
 ```diff
 + # Python3 #
@@ -149,7 +150,7 @@ rm temp_*
 
 ## **Extract plasmid information** 
 
-First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with COPLA (https://github.com/santirdnd/COPLA), using the following arguments: 
+First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with **COPLA** (https://github.com/santirdnd/COPLA), using the following arguments: 
 
 ```diff
 + # python #
@@ -160,7 +161,7 @@ python3 bin/copla.py "$fasta_file" \
 
 ```
 
-We also run mob_suite (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
+We also run **mob_suite** (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
 
 ```diff
 + # bash #
@@ -181,7 +182,7 @@ cat mod* > all_results.txt
 
 ## **Extract antibiotic resistance information** 
 
-We run abricate (https://github.com/tseemann/abricate) on the assemblies to analyze the resistance gene content of each plasmid, by using  the following command:
+We run **abricate** (https://github.com/tseemann/abricate) on the assemblies to analyze the resistance gene content of each plasmid, by using  the following command:
 
 ```diff
 + # bash #
