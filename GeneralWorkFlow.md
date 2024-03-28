@@ -1,5 +1,5 @@
 
-![Flowchart](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/e74a9909-d6ef-4e2a-93fb-77ade576219a)
+![Pipeline_NumeroPaureo](https://github.com/PaulaRamiro/NpAUREO/assets/152322543/007dd8e5-04f9-4735-9717-758dd4d2613d)
 
 
 ## **Download data** 
