@@ -167,7 +167,7 @@ We also run **mob_suite** (https://github.com/phac-nml/mob-suite) on the assembl
 + # bash #
 
 mkdir Results_mobtyper
-ls *.fasta *.fna | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
+ls *.fasta | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
 
 ```
 And parse the results using the code:
@@ -186,6 +186,6 @@ We run **abricate** (https://github.com/tseemann/abricate) on the assemblies to 
 
 ```diff
 + # bash #
-abricate *.f* > AbricateResults.tab
+abricate *.fasta > AbricateResults.tab
 
 ```
