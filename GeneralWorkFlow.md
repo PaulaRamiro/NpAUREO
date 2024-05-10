@@ -170,12 +170,10 @@ We also run **mob_suite v3.1.8** (https://github.com/phac-nml/mob-suite) on the 
 mkdir Results_mobtyper
 ls ${Biosample}.fasta | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
 
-```
-And parse the results using the code:
 
-```diff
+# And parse the results using the code:
 
-+ # bash #
+
 for f in ${Biosample}.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
 cat mod* > mobtyper_results.txt
 
