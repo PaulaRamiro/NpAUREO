@@ -21,17 +21,16 @@ Samples were selected by filtering the desired genus and "Complete Genome". For 
 ```diff
 + # bash #
 
-grep "Genus" assembly_summary_genbank.txt | grep "Complete Genome" > data_Genus.txt
-
+grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
-Then, we used **esearch v20.6** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies, with the following arguments:
+Then, we used **Entrez Direct** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through esearch, with the following arguments:
 
 ```diff
 
 + # bash #
 
-esearch -db ${assembly} -query "${biosample}" | efetch -format fasta > ${biosample}.fasta
+esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
 
 ```
 
@@ -86,11 +85,10 @@ Then, we downloaded the files containing run information for selected assemblies
 
 + # bash #
 
-esearch -db sra -query ${Biosample} | efetch -format runinfo > ${Biosample}.numbers
-
+esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
-With the ${Biosample}.numbers files, we filter those runs paired-end with "genomic" as a library source, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (https://hpc.nih.gov/apps/sratoolkit.html):
+With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (https://hpc.nih.gov/apps/sratoolkit.html):
 
 ```diff
 + # Python3 #
@@ -119,12 +117,12 @@ if __name__ == "__main__":
 ## **Extract coverage information** 
 
 
-Once the reads and assembly files have been downloaded, we ran **CoverM v0.6.1** (https://github.com/wwood/CoverM) to extract the coverage information by using the following flags:
+Once the reads and assembly files have been downloaded, we ran **CoverM** (https://github.com/wwood/CoverM) to extract the coverage information, by using the following flags:
 
 ```diff
 + # bash #
 
-coverm contig --output-file ${Biosample} -m trimmed_mean -r ${Biosample}.fasta -1 reads_1.fastq -2 reads_2.fastq
+coverm contig --output-file Biosample -m trimmed_mean -r Biosample.fasta -1 reads_1.fastq -2 reads_2.fastq
 
 ```
 
@@ -149,9 +147,10 @@ cat temp_* > combined_file.txt
 rm temp_*
 ```
 
+
 ## **Extract plasmid information** 
 
-First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with **COPLA v1.0** (https://github.com/santirdnd/COPLA), using the following arguments: 
+First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with **COPLA** (https://github.com/santirdnd/COPLA), using the following arguments: 
 
 ```diff
 + # python #
@@ -162,29 +161,31 @@ python3 bin/copla.py "$fasta_file" \
 
 ```
 
-We also run **mob_suite v3.1.8** (https://github.com/phac-nml/mob-suite) on the assemblies to extract replicon-type information. We run it by parallelizing with the following command:
+We also run **mob_suite** (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
 
 ```diff
 + # bash #
 
 mkdir Results_mobtyper
-ls ${Biosample}.fasta | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
+ls *.fasta | xargs -n 1 -P 8 -I {} sh -c 'mob_typer --multi --infile "{}" --out_file "Results_mobtyper/{}"'
 
+```
+And parse the results using the code:
 
-# And parse the results using the code:
+```diff
 
-
-for f in ${Biosample}.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
-cat mod* > mobtyper_results.txt
++ # bash #
+for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
+cat mod* > all_results.txt
 
 ```
 
 ## **Extract antibiotic resistance information** 
 
-We run **abricate v1.0.1** (https://github.com/tseemann/abricate) on the assemblies to analyze the resistance gene content of each plasmid by using the following command:
+We run **abricate** (https://github.com/tseemann/abricate) on the assemblies to analyze the resistance gene content of each plasmid, by using  the following command:
 
 ```diff
 + # bash #
-abricate ${Biosample}.fasta > AbricateResults.tab
+abricate *.fasta > AbricateResults.tab
 
 ```
