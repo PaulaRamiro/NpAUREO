@@ -189,3 +189,45 @@ We run **abricate** (https://github.com/tseemann/abricate) on the assemblies to 
 abricate *.fasta > AbricateResults.tab
 
 ```
+Additionally, we run **CARD database**' with RGI (https://github.com/arpcard/rgi) on the plasmids 
+
+```diff
++ # bash #
+for file in *.fasta; do rgi main --input_sequence "$file" --output_file CARDoutputs/"$(basename "$file")" --clean --include_loose; done
+
+```
+Results were parsed with the following custom script
+
+```diff
++ # Python3 #
+for file in *.fasta; do rgi main --input_sequence "$file" --output_file CARDoutputs/"$(basename "$file")" --clean --include_loose; done
+
+import os
+
+# Get a list of all .fasta.txt files in the current directory
+fasta_files = [file for file in os.listdir() if file.endswith('.fasta.txt')]
+
+# Initialize an empty string to store the merged content
+merged_content = ''
+
+# Loop through each .fasta.txt file
+for file_name in fasta_files:
+    with open(file_name, 'r') as file:
+        content = file.read().strip()  # Read content of the file and remove leading/trailing whitespaces
+        
+        # If it's the first file, add content along with headers
+        if not merged_content:
+            merged_content = content
+        else:
+            # If not the first file, remove headers and append the content
+            lines = content.split('\n')
+            lines = [line for line in lines if not line.startswith('>')]
+            merged_content += '\n' + '\n'.join(lines)
+
+# Write the merged content to a new file
+with open('merged.fasta.txt', 'w') as merged_file:
+    merged_file.write(merged_content)
+
+print("Merging completed. Merged content saved in 'merged.fasta.txt'")
+
+```
