@@ -237,7 +237,7 @@ Additionally, we run **CARD database**' with RGI (https://github.com/arpcard/rgi
 for file in *.fasta; do rgi main --input_sequence "$file" --output_file CARDoutputs/"$(basename "$file")" --clean --include_loose; done
 
 ```
-Results were parsed with the following custom script
+The results were parsed with the following custom script, and we filtered only those hits with the cut-offs "strict" and "perfect".
 
 ```diff
 + # Python3 #
