@@ -12,7 +12,7 @@ import category_encoders as ce
 import matplotlib.pyplot as plt
 
 # Load your dataset
-data = pd.read_csv("manuallycurateddataset.csv", na_values=np.nan, sep='\t')
+data = pd.read_csv("curateddataset.csv", na_values=np.nan, sep='\t')
 
 # Explore the structure of your dataset, check that everything is correct
 print(data.info())
