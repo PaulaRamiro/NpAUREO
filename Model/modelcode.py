@@ -1,7 +1,7 @@
 # Load libraries
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, GridSearchCV
 from sklearn.preprocessing import RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -72,13 +72,24 @@ random_search.fit(X_train, y_train)
 # Get the best parameters
 print("Best Parameters from Randomized Search:", random_search.best_params_)
 
+
+# Our Best Parameters from Randomized Search for example 
+#{'randomforestregressor__n_estimators': 500, 'randomforestregressor__min_samples_split': 10, 'randomforestregressor__min_samples_leaf': 4,
+#'randomforestregressor__max_features': 0.3, 'randomforestregressor__max_depth': 160, 'randomforestregressor__bootstrap': True}
+
+
+# Shall you run this code on your own, below dictionary with the second param grid should be tuned around the values provided from the above print
+# These values needn't to be these exact same, as they depend on the current split, but should not significantly alter the final output
+
+
+
 # Now perform extensive grid search around the best parameters from random search 
 param_grid2 = {
-    'randomforestregressor__n_estimators': [150, 175, 200, 225, 250],
+    'randomforestregressor__n_estimators': [450, 475, 500, 525, 550],
     'randomforestregressor__max_features': [0.25, 0.3, 0.35],
-    'randomforestregressor__max_depth': [200, 225, 250, 260, 270, 280, 290, 300,325, 350],
-    'randomforestregressor__min_samples_split': [2, 3, 4, 5, 6, 7],
-    'randomforestregressor__min_samples_leaf': [2,3, 4, 5, 6, 7],
+    'randomforestregressor__max_depth': [140, 150, 160, 170, 180],
+    'randomforestregressor__min_samples_split': [ 8, 9, 10, 11,12],
+    'randomforestregressor__min_samples_leaf': [2,3, 4, 5, 6],
     'randomforestregressor__bootstrap': [True]
 }
 
@@ -86,7 +97,7 @@ param_grid2 = {
 grid_search = GridSearchCV(estimator=pipeline, param_grid=param_grid2, cv=5, n_jobs=-1, verbose=1)
 
 # Fit GridSearchCV
-grid_search.fit(X_train2, y_train2)
+grid_search.fit(X_train, y_train)
 
 # Get the best parameters
 print("Best Parameters from Grid Search:", grid_search.best_params_)
@@ -104,7 +115,7 @@ n_features_range = X_train_preprocessed.shape[1]  # Use the total number of feat
 
 for n_features in range(1, n_features_range + 1):
     selector = RFE(estimator=best_model_grid.named_steps['randomforestregressor'], n_features_to_select=n_features, step=1)
-    selector = selector.fit(X_train_preprocessed, y_train2)
+    selector = selector.fit(X_train_preprocessed, y_train)
     
     # Get the selected features
     selected_features = [feature for feature, rank in zip(numerical_features.append(categorical_features), selector.ranking_) if rank == 1]
@@ -120,8 +131,8 @@ for n_features in range(1, n_features_range + 1):
     y_pred_random = best_model_grid.named_steps['randomforestregressor'].predict(X_test_selected)
     
     # Calculate evaluation metrics
-    mae_random = mean_absolute_error(y_test2, y_pred_random)
-    mse_random = mean_squared_error(y_test2, y_pred_random)
+    mae_random = mean_absolute_error(y_test, y_pred_random)
+    mse_random = mean_squared_error(y_test, y_pred_random)
     rmse_random = np.sqrt(mse_random)
     r2_random = r2_score(y_test, y_pred_random)
     
@@ -143,7 +154,7 @@ print(f"Selected Features: {best_selected_features}")
 
 # Plot actual vs predicted values for the best model
 plt.figure(figsize=(10, 6))
-plt.scatter(y_test2, y_pred_random2, alpha=0.5)
+plt.scatter(y_test, y_pred_random, alpha=0.5)
 plt.xlabel("Actual Values")
 plt.ylabel("Predicted Values")
 plt.title("Actual vs Predicted Values with Selected Features")
