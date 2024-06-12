@@ -132,72 +132,14 @@ plt.plot([min(y_test2), max(y_test2)], [min(y_test2), max(y_test2)], 'r', linest
 plt.show()
 
 
-# Get feature importances from the trained model
+# Get the feature importances
 feature_importance = best_model_random.named_steps["randomforestregressor"].feature_importances_
-def plot_feature_importance(importance_with_names):
-    # Extract the top 10 features and their importance
-    top_10 = importance_with_names[:10]
-    features, importance = zip(*top_10)
 
-    # Convert to numpy arrays for plotting
-    importance = np.array(importance)
-    features = np.array(features)
+# Get the feature names
+numerical_features = X2.select_dtypes(include=['int64', 'float64']).columns
+categorical_features = X2.select_dtypes(include=['object']).columns
+all_features = list(numerical_features) + list(categorical_features)
 
-    # Create a colormap
-    cmap = plt.get_cmap('RdYlGn_r')
-    scale = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
-
-    # Plot the bar chart
-    plt.figure(figsize=(8, 6))
-    plt.barh(
-        range(len(features)),
-        importance,
-        color=cmap(scale(importance)),
-        align='center'
-    )
-
-    # Set the feature names on the y-axis
-    plt.yticks(range(len(features)), features)
-    plt.xlabel('Importance')
-    plt.title('Top 10 Feature Importance')
-    plt.gca().invert_yaxis()
-    plt.show()
-
-# Get the feature names after preprocessing
-def get_feature_names(column_transformer):
-    feature_names = []
-    
-    for transformer_name, transformer, columns in column_transformer.transformers_:
-        if transformer_name != 'remainder':
-            if hasattr(transformer, 'get_feature_names_out'):
-                # For sklearn transformers
-                names = transformer.get_feature_names_out(columns)
-            else:
-                # For category_encoders
-                if hasattr(transformer, 'named_steps') and 'ordinal' in transformer.named_steps:
-                    ce_names = []
-                    for col, categories in zip(columns, transformer.named_steps['ordinal'].categories_):
-                        ce_names.extend([f"{col}_{category}" for category in categories])
-                    names = ce_names
-                else:
-                    names = columns
-            feature_names.extend(names)
-        else:
-            feature_names.extend(columns)  # For 'passthrough' columns
-    
-    return feature_names
-
-preprocessor = best_model_random.named_steps['preprocessor']
-preprocessed_feature_names = get_feature_names(preprocessor)
-
-# Check if the lengths match
-print("Number of feature importances:", len(feature_importance))
-print("Number of preprocessed feature names:", len(preprocessed_feature_names))
-
-# Pair feature names with their importances
-importance_with_names = sorted(zip(preprocessed_feature_names, feature_importance), key=lambda x: x[1], reverse=True)
-most_important_feature = importance_with_names[0]
-print("Most important feature:", most_important_feature)
-
-
-plot_feature_importance(importance_with_names)
+# Print the feature importances with their corresponding names
+for name, importance in zip(all_features, feature_importance):
+    print(f"Feature: {name}, Importance: {importance}")
