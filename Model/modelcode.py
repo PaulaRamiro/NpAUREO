@@ -72,8 +72,27 @@ random_search.fit(X_train, y_train)
 # Get the best parameters
 print("Best Parameters from Randomized Search:", random_search.best_params_)
 
+# Now perform extensive grid search around the best parameters from random search 
+param_grid2 = {
+    'randomforestregressor__n_estimators': [150, 175, 200, 225, 250],
+    'randomforestregressor__max_features': [0.25, 0.3, 0.35],
+    'randomforestregressor__max_depth': [200, 225, 250, 260, 270, 280, 290, 300,325, 350],
+    'randomforestregressor__min_samples_split': [2, 3, 4, 5, 6, 7],
+    'randomforestregressor__min_samples_leaf': [2,3, 4, 5, 6, 7],
+    'randomforestregressor__bootstrap': [True]
+}
+
+# Initialize GridSearchCV
+grid_search = GridSearchCV(estimator=pipeline, param_grid=param_grid2, cv=5, n_jobs=-1, verbose=1)
+
+# Fit GridSearchCV
+grid_search.fit(X_train2, y_train2)
+
+# Get the best parameters
+print("Best Parameters from Grid Search:", grid_search.best_params_)
+
 # Get the best estimator
-best_model_random = random_search.best_estimator_
+best_model_grid = grid_search.best_estimator_
 
 # Preprocess the data before applying RFE
 X_train_preprocessed = preprocessor.fit_transform(X_train)
@@ -84,7 +103,7 @@ results = []
 n_features_range = X_train_preprocessed.shape[1]  # Use the total number of features
 
 for n_features in range(1, n_features_range + 1):
-    selector = RFE(estimator=best_model_random.named_steps['randomforestregressor'], n_features_to_select=n_features, step=1)
+    selector = RFE(estimator=best_model_grid.named_steps['randomforestregressor'], n_features_to_select=n_features, step=1)
     selector = selector.fit(X_train_preprocessed, y_train2)
     
     # Get the selected features
@@ -95,10 +114,10 @@ for n_features in range(1, n_features_range + 1):
     X_test_selected = selector.transform(X_test_preprocessed)
     
     # Fit the model with selected features
-    best_model_random.named_steps['randomforestregressor'].fit(X_train_selected, y_train)
+    best_model_grid.named_steps['randomforestregressor'].fit(X_train_selected, y_train)
     
     # Predict on the test set
-    y_pred_random = best_model_random.named_steps['randomforestregressor'].predict(X_test_selected)
+    y_pred_random = best_model_grid.named_steps['randomforestregressor'].predict(X_test_selected)
     
     # Calculate evaluation metrics
     mae_random = mean_absolute_error(y_test2, y_pred_random)
@@ -128,16 +147,16 @@ plt.scatter(y_test2, y_pred_random2, alpha=0.5)
 plt.xlabel("Actual Values")
 plt.ylabel("Predicted Values")
 plt.title("Actual vs Predicted Values with Selected Features")
-plt.plot([min(y_test2), max(y_test2)], [min(y_test2), max(y_test2)], 'r', linestyle='--')
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'r', linestyle='--')
 plt.show()
 
 
 # Get the feature importances
-feature_importance = best_model_random.named_steps["randomforestregressor"].feature_importances_
+feature_importance = best_model_grid.named_steps["randomforestregressor"].feature_importances_
 
 # Get the feature names
-numerical_features = X2.select_dtypes(include=['int64', 'float64']).columns
-categorical_features = X2.select_dtypes(include=['object']).columns
+numerical_features = X.select_dtypes(include=['int64', 'float64']).columns
+categorical_features = X.select_dtypes(include=['object']).columns
 all_features = list(numerical_features) + list(categorical_features)
 
 # Print the feature importances with their corresponding names
