@@ -79,7 +79,7 @@ print("Best Parameters from Randomized Search:", random_search.best_params_)
 
 
 # Shall you run this code on your own, below dictionary with the second param grid should be tuned around the values provided from the above print
-# These values needn't to be these exact same, as they depend on the current split, but should not significantly alter the final output
+# These values needn't to be the same, as they depend on the data split you run randomly selected, but should not significantly alter the final output
 
 
 
@@ -152,7 +152,6 @@ print(f"Root Mean Squared Error (RMSE): {best_result[3]}")
 print(f"R-squared (R²): {best_result[4]}")
 print(f"Selected Features: {best_selected_features}")
 
-# Plot actual vs predicted values for the best model
 # Plot actual vs predicted values for the best model
 plt.figure(figsize=(10, 6))
 plt.scatter(np.log(y_test), np.log(y_pred_random), alpha=0.5)
