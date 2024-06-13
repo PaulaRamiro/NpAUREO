@@ -153,12 +153,13 @@ print(f"R-squared (R²): {best_result[4]}")
 print(f"Selected Features: {best_selected_features}")
 
 # Plot actual vs predicted values for the best model
+# Plot actual vs predicted values for the best model
 plt.figure(figsize=(10, 6))
-plt.scatter(y_test, y_pred_random, alpha=0.5)
-plt.xlabel("Actual Values")
-plt.ylabel("Predicted Values")
-plt.title("Actual vs Predicted Values with Selected Features")
-plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'r', linestyle='--')
+plt.scatter(np.log(y_test), np.log(y_pred_random), alpha=0.5)
+plt.xlabel("Log Actual Values")
+plt.ylabel("Log Predicted Values")
+plt.title("Actual vs Predicted Values with Final Model")
+plt.plot([min(np.log(y_test)), max(np.log(y_test))], [min(np.log(y_test)), max(np.log(y_test))], 'r', linestyle='--')
 plt.show()
 
 
