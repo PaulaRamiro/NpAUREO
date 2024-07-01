@@ -5,12 +5,6 @@ import os
 
 
 def read_and_transform_csv(directory):
-    """
-    Lee todos los archivos CSV en un directorio y los combina en un solo DataFrame.
-
-    :param directory: Ruta al directorio que contiene los archivos CSV.
-    :return: DataFrame combinado.
-    """
     # Obtener la lista de todos los archivos CSV en el directorio
     csv_files = [f for f in os.listdir(directory) if f.endswith('.csv')]
 
