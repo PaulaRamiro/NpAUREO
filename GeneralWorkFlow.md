@@ -271,3 +271,15 @@ with open('merged.fasta.txt', 'w') as merged_file:
 print("Merging completed. Merged content saved in 'merged.fasta.txt'")
 
 ```
+
+## **Extract plasmids with RNAI** 
+
+In annotation files (.gff), we searched for those plasmids with replication through the RNAI-RNAII regulation system.  
+
+```diff
++ # bash #
+
+grep "RNAI;" *.gff > Files_with_RNAI.txt
+sed 's/.gff3:contig_1//' Files_with_RNAI.txt > Files_with_RNAI_2.txt
+
+```
