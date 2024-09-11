@@ -79,7 +79,7 @@ print("Best Parameters from Randomized Search:", random_search.best_params_)
 
 
 # Shall you run this code on your own, below dictionary with the second param grid should be tuned around the values provided from the above print
-# These values needn't to be the same, as they depend on the data split you run randomly selected, but should not significantly alter the final output
+# These values needn't to be the same, as they depend on the data split your own run randomly selected, but should not significantly alter the final output
 
 
 
