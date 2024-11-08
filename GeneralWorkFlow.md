@@ -1,5 +1,6 @@
 
-![WorkflowNumeroPaureo](https://github.com/user-attachments/assets/d53b50b0-245e-4f9b-a68a-53d8376e5a31)
+![WorkflowNumeroPaureo](https://github.com/user-attachments/assets/2bd1d2c5-85e0-40d7-a9ea-f36bd78b2d96)
+
 
 
 
