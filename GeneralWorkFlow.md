@@ -1,5 +1,5 @@
 
-![Pipeline_NumeroPaureo](https://github.com/user-attachments/assets/0ec34699-ba50-4f9a-973f-daa47d9ec7a0)
+![WorkflowNumeroPaureo](https://github.com/user-attachments/assets/d53b50b0-245e-4f9b-a68a-53d8376e5a31)
 
 
 
