@@ -26,7 +26,7 @@ Samples were selected by filtering the desired genus and "Complete Genome". For 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
-Then, we used **Entrez Direct** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through esearch, with the following arguments:
+Then, we used **Entrez Direct** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through research (v20.6), with the following arguments:
 
 ```diff
 
