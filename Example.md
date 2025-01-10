@@ -1,3 +1,6 @@
+This notebook serves as a toy example to understand with a particular example how to exactly run the workflow, we strongly encourage to try this approach with just one file before attempting to run more sequences at once. 
+
+
 First, we download NCBI metadata, and filter one genus, for example, staphylococcus. 
 
 ```diff
@@ -50,3 +53,12 @@ Now, we download the corresponding reads using the Run column
 
 fasterq-dump --split-3 SRR1955495
 ```
+Finally, we run coverm on our downloaded assembly and reads. 
+
+```diff
+
++ # bash #
+coverm contig --output-file SAMN03255442 -m trimmed_mean -r SAMN03255442.fasta -1 SRR1955495_1.fastq -2 SRR1955495_2.fastq
+```
+
+Which will output a file with the coverage of each contig. 
