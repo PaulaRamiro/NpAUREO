@@ -115,7 +115,7 @@ if __name__ == "__main__":
     pool.join()
 
 ```
-We checked for only circular plasmids with the following script that connects to the NCBI API
+We checked the topology of the plasmids to maintain only those that were circular with the following script that connects to the NCBI API: 
 ```diff
 + # Python3 #
 import requests
