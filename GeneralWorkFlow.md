@@ -32,7 +32,8 @@ Then, we used **Entrez Direct** (v20.6) (https://www.ncbi.nlm.nih.gov/books/NBK1
 
 + # bash #
 
-esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta
+esearch -db assembly -query "biosample" | efetch -format fasta > biosample.fasta borrar esta
+esearch -db assembly -query "biosample" | elink -target nucleotide -name assembly_nuccore_refseq | efetch -format fasta > "biosample".fasta
 
 ```
 
