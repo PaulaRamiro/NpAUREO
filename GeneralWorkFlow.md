@@ -183,8 +183,7 @@ def process_contigs(contig_list, batch_size=100, sleep_time=1):
       time.sleep(sleep_time)  # To avoid overwhelming the server
   return topology_results
 
-# Example usage:
-contig_file = "contigs.txt"
+contig_file = "contigs.txt" # The list of all your plasmid 
 contig_list = read_contig_ids_from_file(contig_file)
 
 # Process the contigs and get topology information
