@@ -13,6 +13,15 @@ In this case, we will only do it for one assembly, getting the first of the list
 
 + # bash #
 
-grep *GCA_001018645* data_staphylococcus.txt > staphylococcus_example.txt
+grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
+After identifying the Biosample field ( (headers from the first file assembly_summary_genbank.txt  may be used), we fetch the .fasta file.
+
+
+```diff
+
++ # bash #
+
+esearch -db assembly -query SAMN03255442 | elink -target nucleotide -name assembly_nuccore_refseq | efetch -format fasta > SAMN03255442.fasta
+ ```
