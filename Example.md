@@ -1,4 +1,4 @@
-This notebook serves as a toy example to understand with a particular example how to exactly run the workflow, we strongly encourage to try this approach with just one file before attempting to run more sequences at once. 
+This notebook serves as a guide to understand with a particular example how to run the workflow, we strongly encourage to try this approach with just one file before attempting to run more sequences at once. 
 
 
 First, we download NCBI metadata, and filter one genus, for example, staphylococcus. 
