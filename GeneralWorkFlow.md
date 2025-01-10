@@ -190,7 +190,7 @@ contig_list = read_contig_ids_from_file(contig_file)
 # Process the contigs and get topology information
 topology_results = process_contigs(contig_list)
 
-# Optionally, write the results to a file
+# Write the results to a file
 with open("topology_results.txt", "w") as output_file:
     for contig, topology in topology_results.items():
         output_file.write(f"{contig}\t{topology}\n")
