@@ -245,7 +245,7 @@ python3 bin/copla.py "$fasta_file" \
 
 ```
 
-We also run **mob_suite** (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
+We also run **mob_suite** (v3.1.8) (https://github.com/phac-nml/mob-suite) on the assemblies, to extract replicon type information. We run it by paralellizing with the following command:
 
 ```diff
 + # bash #
@@ -263,48 +263,7 @@ for f in *.fasta; do awk -v fName="${f%.fasta}" '{printf("%s,%s\n", (FNR==1 ? "f
 cat mod* > all_results.txt
 
 ```
-**Plasmidfinder** (https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/)  was also run on all plasmids with the following options:
-```diff
-
-+ # bash #
-for file in *.fasta; do mkdir outputs/${file}; plasmidfinder.py -i ${file} -o outputs/${file} -p PlasmidfinderDB/plasmidfinder_db -x; done
-
-```
-Results were parsed with the following custom python script:
-
-```diff
-import os
-import pandas as pd
-
-# Get the current directory
-current_dir = os.getcwd()
-
-# Initialize an empty list to store dataframes
-dfs = []
-
-# Iterate over each folder in the current directory
-for folder_name in os.listdir(current_dir):
-    folder_dir = os.path.join(current_dir, folder_name)
-    
-    # Check if the folder contains the results.tsv file
-    if os.path.isfile(os.path.join(folder_dir, "results_tab.tsv")):
-        # Read the results.tsv file into a pandas dataframe
-        df = pd.read_csv(os.path.join(folder_dir, "results_tab.tsv"), delimiter='\t')
         
-        # Add a new column with the folder name
-        df.insert(0, "Folder", folder_name)
-        
-        # Append the dataframe to the list
-        dfs.append(df)
-
-# Concatenate all dataframes into one
-merged_df = pd.concat(dfs, ignore_index=True)
-
-# Save the merged dataframe to a new file in the current directory
-merged_df.to_csv(os.path.join(current_dir, "merged_results.tsv"), sep='\t', index=False)
- 
-```
-
 ## **Extract plasmids with RNAI** 
 
 In annotation files (.gff), we searched for those plasmids with replication through the RNAI-RNAII regulation system.  
