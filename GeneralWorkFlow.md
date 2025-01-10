@@ -115,6 +115,90 @@ if __name__ == "__main__":
     pool.join()
 
 ```
+We checked for only circular plasmids with the following script that connects to the NCBI API
+```diff
++ # Python3 #
+import requests
+from xml.etree import ElementTree
+import time
+from urllib3.exceptions import MaxRetryError  
+
+def get_contig_topology(contig_id, max_retries=100, backoff_factor=1):
+  """Fetches contig topology with retry logic.
+
+  Args:
+      contig_id (str): The ID of the contig to fetch.
+      max_retries (int, optional): The maximum number of retries before giving up. Defaults to 5.
+      backoff_factor (float, optional): The factor by which to increase the sleep time between retries. Defaults to 1.
+
+  Returns:
+      str: The topology of the contig, or None if all retries fail.
+  """
+  url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+  params = {
+      "db": "nuccore",
+      "id": contig_id,
+      "rettype": "gb",
+      "retmode": "xml"
+  }
+
+  for attempt in range(max_retries + 1):
+    try:
+      response = requests.get(url, params=params)
+      if response.status_code == 200:
+        xml_root = ElementTree.fromstring(response.content)
+        for child in xml_root.iter('GBSeq_topology'):
+          return child.text
+      else:
+        print(f"Error fetching data for {contig_id}: {response.status_code}")
+    except (requests.exceptions.RequestException, MaxRetryError) as e:
+      # Handle any request exceptions and MaxRetryError
+      print(f"Attempt {attempt}/{max_retries}: Error fetching data for {contig_id}: {e}")
+      if attempt < max_retries:
+        time.sleep(backoff_factor * 2 ** attempt)  # Exponential backoff between retries
+      else:
+        return None
+
+  # All retries failed
+  print(f"Failed to fetch data for {contig_id} after {max_retries} retries.")
+  return None
+
+def read_contig_ids_from_file(filename):
+    with open(filename, 'r') as file:
+        return [line.strip() for line in file]
+
+def process_contigs(contig_list, batch_size=100, sleep_time=1):
+  topology_results = {}
+  for i in range(0, len(contig_list), batch_size):
+    batch = contig_list[i:i+batch_size]
+    for contig in batch:
+      topology = get_contig_topology(contig)
+      topology_results[contig] = topology
+      print(f"Contig {contig} is {topology}")
+
+      # Write results to file after each contig
+      with open("topology_results.txt", "a") as output_file:
+        output_file.write(f"{contig}\t{topology}\n")
+
+      time.sleep(sleep_time)  # To avoid overwhelming the server
+  return topology_results
+
+# Example usage:
+contig_file = "contigs.txt"
+contig_list = read_contig_ids_from_file(contig_file)
+
+# Process the contigs and get topology information
+topology_results = process_contigs(contig_list)
+
+# Optionally, write the results to a file
+with open("topology_results.txt", "w") as output_file:
+    for contig, topology in topology_results.items():
+        output_file.write(f"{contig}\t{topology}\n")
+
+
+
+```
+
 
 ## **Extract coverage information** 
 
