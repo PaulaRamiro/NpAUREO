@@ -26,7 +26,7 @@ Samples were selected by filtering the desired genus and "Complete Genome". For 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 ```
 
-Then, we used **Entrez Direct** (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through research (v20.6), with the following arguments:
+Then, we used **Entrez Direct** (v20.6) (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies through research, with the following arguments:
 
 ```diff
 
@@ -90,7 +90,7 @@ Then, we downloaded the files containing run information for selected assemblies
 esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
 ```
 
-With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (https://hpc.nih.gov/apps/sratoolkit.html):
+With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (v2.11.3)(https://hpc.nih.gov/apps/sratoolkit.html):
 
 ```diff
 + # Python3 #
@@ -118,8 +118,7 @@ if __name__ == "__main__":
 
 ## **Extract coverage information** 
 
-
-Once the reads and assembly files have been downloaded, we ran **CoverM** (https://github.com/wwood/CoverM) to extract the coverage information, by using the following flags:
+Once the reads and assembly files have been downloaded, we ran **CoverM** (v0.6.1) (https://github.com/wwood/CoverM) to extract the coverage information, by using the following flags:
 
 ```diff
 + # bash #
@@ -152,7 +151,7 @@ rm temp_*
 
 ## **Extract plasmid information** 
 
-First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with **COPLA** (https://github.com/santirdnd/COPLA), using the following arguments: 
+First, we extracted the Plasmid Taxonomic Units (PTUs) information of each cluster with **COPLA** (v1.0) (https://github.com/santirdnd/COPLA), using the following arguments: 
 
 ```diff
 + # python #
