@@ -1,3 +1,7 @@
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+
 all_data <-read.table("Dataset1",header = T,fill = T,dec = ",",sep="\t") 
 
 Indice1 = runif(10000, min=1, max=length(all_data$PCN))
