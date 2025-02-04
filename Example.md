@@ -18,7 +18,7 @@ In this case, we will only do it for one assembly, getting the first of the list
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
-After identifying the Biosample in the assembly_summary_genbank.txt may be used), we fetch the .fasta file.
+After identifying the Biosample in the assembly_summary_genbank.txt, we fetch the .fasta file.
 
 ```diff
 
