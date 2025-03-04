@@ -29,7 +29,25 @@ After identifying the Biosample in the assembly_summary_genbank.txt, we fetch th
 
 + # bash #
 
-esearch -db assembly -query SAMN03255442 | elink -target nucleotide -name assembly_nuccore_refseq | efetch -format fasta > SAMN03255442.fasta
+# For Linux users:
+esearch -db assembly -query SAMN03255442 \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCA_.*' | sed 's/$/_genomic.fna.gz/') ;
+        wget "$line/$fname" ;
+    done
+
+# For MacOS users:
+esearch -db assembly -query SAMN03255442 \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCA_.*' | sed 's/$/_genomic.fna.gz/') ;
+        curl -O "$line/$fname" ;
+    done
 
  ```
 Here, you can check the number of contigs and the length of each one with the script provided in the general workflow, although we will skip it here since there is only one file. 
