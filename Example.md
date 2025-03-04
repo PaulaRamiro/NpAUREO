@@ -53,7 +53,7 @@ Now, by using the "Run" column, we can download the reads for each assembly with
 
 fasterq-dump --split-3 SRR1955495
 
-q```
+```
 Finally, we run CoverM on our downloaded assembly and reads to extract the coverage and to calculate the plasmid copy number. 
 
 ```diff
