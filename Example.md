@@ -5,7 +5,12 @@ First, we download NCBI metadata, and filter the genus, for example, "_Staphyloc
 ```diff
 
 + # bash #
-wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt 
+
+# For Linux users:
+wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
+
+#For MacOS users:
+curl -O https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 
@@ -13,7 +18,6 @@ grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > da
 In this case, we select one random assembly from our dataset (GCA_001018645) to run the test. 
 
 ```diff
-
 + # bash #
 
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
@@ -49,7 +53,7 @@ Now, by using the "Run" column, we can download the reads for each assembly with
 
 fasterq-dump --split-3 SRR1955495
 
-```
+q```
 Finally, we run CoverM on our downloaded assembly and reads to extract the coverage and to calculate the plasmid copy number. 
 
 ```diff
