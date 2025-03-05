@@ -23,7 +23,7 @@ We select one random assembly from our dataset (GCA_001018645) to run the test.
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
-After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fna file:
+After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fna file with **Entrez Direct**:
 
 ```diff
 
@@ -58,7 +58,7 @@ We extract the number of contigs and the length of each one:
 gunzip -c GCA_001018645.1_ASM101864v1_genomic.fna.gz | awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' > GCA_001018645.1_contig_lenght.txt
 
  ```
-Now, we query the SRA database again with the Biosample ID to get the .numbers file with the run's information. We filter only those runs sequenced by Illumina and with paired ends. 
+Now, we query the SRA database again with the Biosample ID to get the .numbers file with the run's information, again through **Entrez Direct v20.6**. We filter only those runs sequenced by Illumina and with paired ends. 
 
 ```diff
 
@@ -69,7 +69,7 @@ esearch -db sra -query SAMN03255442 | efetch -format runinfo > SAMN03255442.numb
 grep "ILLUMINA" SAMN03255442.numbers | grep "PAIRED" > filtered_SAMN03255442.numbers
 
 ```
-Now, by using the "Run" column, we can download the reads for each assembly with fasterq-dump:
+Now, by using the "Run" column, we can download the reads for each assembly with **SRA.toolkit v2.11.3**:
 
 ```diff
 
@@ -78,7 +78,7 @@ Now, by using the "Run" column, we can download the reads for each assembly with
 fasterq-dump --split-3 SRR1955495
 
 ```
-Finally, we run CoverM by mapping the reads against the assembly to extract the coverage and to calculate the plasmid copy number. 
+Finally, we run **CoverM v0.6.1** by mapping the reads against the assembly to extract the coverage and calculate the plasmid copy number. 
 
 ```diff
 
