@@ -1,6 +1,6 @@
 This notebook serves as a guide to understanding how to run the code in the general workflow by using a particular example. 
 
-First, we download NCBI metadata, and filter the genus, for example, "_Staphylococcus_". 
+First, we download NCBI metadata, and filter the genus, for example, "_Staphylococcus_" and those assemblies with complete genome. 
 
 ```diff
 
@@ -15,7 +15,7 @@ curl -O https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.tx
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
 
 ```
-In this case, we select one random assembly from our dataset (GCA_001018645) to run the test. 
+We select one random assembly from our dataset (GCA_001018645) to run the test. 
 
 ```diff
 + # bash #
@@ -23,7 +23,7 @@ In this case, we select one random assembly from our dataset (GCA_001018645) to 
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
-After identifying the Biosample in the assembly_summary_genbank.txt, we fetch the .fasta file.
+After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fasta file:
 
 ```diff
 
