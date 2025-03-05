@@ -56,7 +56,8 @@ Here, you can check the number of contigs and the length of each one with the sc
  ```
 + # bash #
 
- awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' _genomic.fna.gz
+gunzip -c GCA_001018645.1_ASM101864v1_genomic.fna.gz | awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}'
+
 
  ```
 Now, we query the SRA database again with the biosample to get the .numbers file by filtering only those samples sequenced by Illumina and with paired ends. 
