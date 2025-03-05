@@ -52,6 +52,13 @@ esearch -db assembly -query SAMN03255442 \
  ```
 Here, you can check the number of contigs and the length of each one with the script provided in the general workflow, although we will skip it here since there is only one file. 
 
+
+ ```
++ # bash #
+
+ awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' _genomic.fna.gz
+
+ ```
 Now, we query the SRA database again with the biosample to get the .numbers file by filtering only those samples sequenced by Illumina and with paired ends. 
 
 ```diff
