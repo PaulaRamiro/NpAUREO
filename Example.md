@@ -23,7 +23,7 @@ We select one random assembly from our dataset (GCA_001018645) to run the test.
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
-After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fasta file:
+After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fna file:
 
 ```diff
 
@@ -50,17 +50,15 @@ esearch -db assembly -query SAMN03255442 \
     done
 
  ```
-Here, you can check the number of contigs and the length of each one with the script provided in the general workflow, although we will skip it here since there is only one file. 
-
+We extract the number of contigs and the length of each one:
 
  ```
 + # bash #
 
-gunzip -c GCA_001018645.1_ASM101864v1_genomic.fna.gz | awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}'
-
+gunzip -c GCA_001018645.1_ASM101864v1_genomic.fna.gz | awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' > GCA_001018645.1_contig_lenght.txt
 
  ```
-Now, we query the SRA database again with the biosample to get the .numbers file by filtering only those samples sequenced by Illumina and with paired ends. 
+Now, we query the SRA database again with the Biosample ID to get the .numbers file with the run's information. We filter only those runs sequenced by Illumina and with paired ends. 
 
 ```diff
 
@@ -80,13 +78,13 @@ Now, by using the "Run" column, we can download the reads for each assembly with
 fasterq-dump --split-3 SRR1955495
 
 ```
-Finally, we run CoverM on our downloaded assembly and reads to extract the coverage and to calculate the plasmid copy number. 
+Finally, we run CoverM by mapping the reads against the assembly to extract the coverage and to calculate the plasmid copy number. 
 
 ```diff
 
 + # bash #
 
-coverm contig --output-file SAMN03255442 -m trimmed_mean -r SAMN03255442.fasta -1 SRR1955495_1.fastq -2 SRR1955495_2.fastq
+coverm contig --output-file SAMN03255442 -m trimmed_mean -r GCA_001018645.1_ASM101864v1_genomic.fna -1 SRR1955495_1.fastq -2 SRR1955495_2.fastq
 
 ```
 
