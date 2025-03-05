@@ -23,7 +23,7 @@ We select one random assembly from our dataset (GCA_001018645) to run the test.
 grep "GCA_001018645" data_staphylococcus.txt > staphylococcus_example.txt
  
 ```
-After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fna file with **Entrez Direct**:
+After identifying the Biosample ID in the assembly_summary_genbank.txt, we fetch the .fna file with **Entrez Direct v20.6**:
 
 ```diff
 
