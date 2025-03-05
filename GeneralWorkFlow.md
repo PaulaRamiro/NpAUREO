@@ -14,30 +14,54 @@ First, we downloaded the metadata table from NCBI:
 
 # Both databases were used indistinctly, selecting for each genus, the one that contained most samples of our interest
 
-wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt 
+# For Linux users:
+wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
 wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+
+#For MacOS users:
+curl -O https://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
+curl -O https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 
 ```
 Samples were selected by filtering the desired genus and "Complete Genome". For example:
 
 ```diff
+
 + # bash #
 
 grep "Staphylococcus" assembly_summary_genbank.txt | grep "Complete Genome" > data_staphylococcus.txt
+
 ```
 
 Then, we used **Entrez Direct** (v20.6) (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies, with the following arguments:
+
 
 ```diff
 
 + # bash #
 
-esearch -db assembly -query "biosample" | elink -target nucleotide -name assembly_nuccore_refseq | efetch -format fasta > "biosample".fasta
+# For Linux users:
+esearch -db assembly -query "biosample_ID" \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCA_.*' | sed 's/$/_genomic.fna.gz/') ;
+        wget "$line/$fname" ;
+    done
+
+# For MacOS users:
+esearch -db assembly -query "biosample_ID" \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCA_.*' | sed 's/$/_genomic.fna.gz/') ;
+        curl -O "$line/$fname" ;
+    done
 
 ```
-
 And we analyze the number of contigs of each assembly file to filter out those that don't contain plasmids:
-
 
 ```diff
 
@@ -116,6 +140,7 @@ if __name__ == "__main__":
 
 ```
 We checked the topology of the plasmids to maintain only those that were circular with the following script that connects to the NCBI API: 
+
 ```diff
 + # Python3 #
 import requests
@@ -193,7 +218,6 @@ topology_results = process_contigs(contig_list)
 with open("topology_results.txt", "w") as output_file:
     for contig, topology in topology_results.items():
         output_file.write(f"{contig}\t{topology}\n")
-
 
 
 ```
